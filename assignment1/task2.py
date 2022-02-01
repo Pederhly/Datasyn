@@ -1,3 +1,4 @@
+from turtle import backward, forward
 import numpy as np
 import utils
 import matplotlib.pyplot as plt
@@ -17,6 +18,17 @@ def calculate_accuracy(X: np.ndarray, targets: np.ndarray, model: BinaryModel) -
     """
     # TODO Implement this function (Task 2c)
     accuracy = 0.0
+    Y_hat_batch = model.forward(X)
+    for i in range(Y_hat_batch.shape[0]):
+        if Y_hat_batch[i] >= 0.5:
+            Y_hat_batch[i] = 1
+        else:
+            Y_hat_batch[i] = 0
+    correct_pred = 0
+    for j in range(targets.shape[0]):
+        if Y_hat_batch[j] == targets[j]:
+            correct_pred = correct_pred + 1
+    accuracy = correct_pred/Y_hat_batch.shape[0]
     return accuracy
 
 
@@ -36,6 +48,10 @@ class LogisticTrainer(BaseTrainer):
         """
         # TODO: Implement this function (task 2b)
         loss = 0
+        Y_hat_batch = model.forward(X_batch)
+        model.backward(X_batch, Y_hat_batch, Y_batch)
+        model.w = model.w - self.learning_rate*model.grad
+        loss = cross_entropy_loss(Y_batch, Y_hat_batch)
         return loss
 
     def validation_step(self):

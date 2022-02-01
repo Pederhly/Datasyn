@@ -31,12 +31,11 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray) -> float:
     # TODO implement this function (Task 2a)
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
-    cn = -(targets*np.log(outputs)+(1-targets)*np.log(1-outputs))
-    np.atleast_2d(cn)
+    cn = -(targets*np.log(outputs) + (1-targets)*np.log(1-outputs))
     cn_rows, _ = np.shape(cn)
-    a = np.sum([cn], dtype=np.float)
+    a = np.sum([cn], dtype=float, axis=1)
     C = (1/cn_rows)*a
-    return C
+    return C[0]
 
 
 class BinaryModel:
@@ -56,12 +55,12 @@ class BinaryModel:
         """
         # TODO implement this function (Task 2a)
         # sigmoid function
-        x_rows, _ = X.shape
-        a = np.zeros((x_rows, 1))
+        x_rows = X.shape[0]
+        a = np.zeros((x_rows))
         for row in range(x_rows):
             a[row] = np.dot(X[row, :], self.w)
         z = np.exp(-a) 
-        f = 1/(1+z) 
+        f = 1/(1+z).reshape(x_rows,1)
         return f
 
     def backward(self, X: np.ndarray, outputs: np.ndarray, targets: np.ndarray) -> None:
@@ -78,7 +77,7 @@ class BinaryModel:
         self.grad = np.zeros_like(self.w)
         assert self.grad.shape == self.w.shape,\
             f"Grad shape: {self.grad.shape}, w: {self.w.shape}"
-        self.grad = -np.multiply((targets-outputs),X)
+        self.grad = -np.dot(X.T,(targets-outputs))/X.shape[0]
 
     def zero_grad(self) -> None:
         self.grad = None
