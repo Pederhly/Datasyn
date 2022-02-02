@@ -1,4 +1,5 @@
 import numpy as np
+from sympy import zeros
 import utils
 from task2a import pre_process_images
 np.random.seed(1)
@@ -13,9 +14,15 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
         Cross entropy error (float)
     """
     # TODO implement this function (Task 3a)
+    cn = np.zeros((outputs.shape[0],1))
+    for i in range(outputs.shape[0]):
+        cn[i] = -np.dot(targets[i,:], np.log(outputs[i,:]))/outputs.shape[0]
+        #cn[i] = -np.sum(targets[i,:]*np.log(outputs[i,:]))
+    c = np.mean(cn)
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
-    raise NotImplementedError
+    return c
+    #raise NotImplementedError
 
 
 class SoftmaxModel:
@@ -39,12 +46,11 @@ class SoftmaxModel:
             y: output of model with shape [batch size, num_outputs]
         """
         # TODO implement this function (Task 3a)
-        z = self.w.dot(X)
-        sum_expz = np.zeros(z.shape[0])
+        z = X.dot(self.w)
+        Y_hat = np.exp(z)
         for i in range(z.shape[0]):
-            sum_expz[i] = np.sum(np.exp(z[i]))
-        
-        return None
+            Y_hat[i] /= np.sum(Y_hat[i,:])
+        return Y_hat
 
     def backward(self, X: np.ndarray, outputs: np.ndarray, targets: np.ndarray) -> None:
         """
@@ -56,6 +62,7 @@ class SoftmaxModel:
             targets: labels/targets of each image of shape: [batch size, num_classes]
         """
         # TODO implement this function (Task 3a)
+        self.grad = -np.dot(X.T,(targets-outputs))/X.shape[0]
         # To implement L2 regularization task (4b) you can get the lambda value in self.l2_reg_lambda 
         # which is defined in the constructor.
         assert targets.shape == outputs.shape,\
@@ -77,7 +84,11 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
         Y: shape [Num examples, num classes]
     """
     # TODO implement this function (Task 3a)
-    raise NotImplementedError
+    #raise NotImplementedError
+    Y_hot_one = np.zeros((Y.shape[0],num_classes))
+    for i in range(Y.shape[0]):
+        Y_hot_one[i,Y] = 1
+    return Y_hot_one
 
 
 def gradient_approximation_test(model: SoftmaxModel, X: np.ndarray, Y: np.ndarray):
