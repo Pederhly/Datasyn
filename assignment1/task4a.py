@@ -59,8 +59,8 @@ class SoftmaxModel:
             targets: labels/targets of each image of shape: [batch size, num_classes]
         """
         # TODO implement this function (Task 3a)
-        self.grad = -np.dot(X.T,(targets-outputs))/X.shape[0]
-        # To implement L2 regularization task (4b) you can get the lambda value in self.l2_reg_lambda 
+        self.grad = -np.dot(X.T,(targets-outputs))/X.shape[0] + self.l2_reg_lambda*self.w
+        # To implement L2 regularization task (4b) you can get the lambda value in self.l2_reg_lambda
         # which is defined in the constructor.
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
