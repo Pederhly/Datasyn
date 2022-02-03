@@ -37,6 +37,10 @@ class SoftmaxTrainer(BaseTrainer):
         """
         # TODO: Implement this function (task 3b)
         loss = 0
+        Y_hat_batch = model.forward(X_batch)
+        model.backward(X_batch, Y_hat_batch, Y_batch)
+        model.w = model.w - self.learning_rate*model.grad
+        loss = cross_entropy_loss(Y_batch, Y_hat_batch)
         return loss
 
     def validation_step(self):
