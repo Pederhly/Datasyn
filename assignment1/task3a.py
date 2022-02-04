@@ -45,8 +45,8 @@ class SoftmaxModel:
         """
         # TODO implement this function (Task 3a)
         z = X.dot(self.w)
-        Y_hat = np.exp(z.T)/np.sum(np.exp(z), axis=1)
-        Y_hat = Y_hat.T
+        Y_hat = np.exp(z)/np.sum(np.exp(z), axis=1, keepdims=True)
+        #Y_hat = Y_hat.T
         return Y_hat
 
     def backward(self, X: np.ndarray, outputs: np.ndarray, targets: np.ndarray) -> None:

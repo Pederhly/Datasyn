@@ -19,8 +19,8 @@ def calculate_accuracy(X: np.ndarray, targets: np.ndarray, model: SoftmaxModel) 
     # TODO: Implement this function (task 3c)
     accuracy = 0.0
     Y_hat_batch = model.forward(X)
-    Y_hat_batch = np.around(Y_hat_batch, 0)
-    accuracy = np.count_nonzero(Y_hat_batch*targets)/targets.shape[0]
+    Y_hat_batch = np.argmax(Y_hat_batch, axis=1)
+    accuracy = np.count_nonzero(Y_hat_batch==np.argmax(targets, axis=1))/targets.shape[0]
     return accuracy
 
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     plt.show()
 
     # Plot accuracy
-    plt.ylim([0.89, 0.95])  #0.95
+    plt.ylim([0.89, 0.95])  #0.89
     utils.plot_loss(train_history["accuracy"], "Training Accuracy")
     utils.plot_loss(val_history["accuracy"], "Validation Accuracy")
     plt.xlabel("Number of Training Steps")
