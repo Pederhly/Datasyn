@@ -29,7 +29,7 @@ def batch_loader(
 
     # TODO (task 2e) implement dataset shuffling here.
     if shuffle == True:
-        random.shuffle(indices)
+        np.random.shuffle(indices)
     for i in range(num_batches):
         # select a set of indices for each batch of sample
         batch_indices = indices[i*batch_size:(i+1)*batch_size]
