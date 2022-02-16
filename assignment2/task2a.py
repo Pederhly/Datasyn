@@ -17,8 +17,8 @@ def pre_process_images(X: np.ndarray):
     # TODO implement this function (Task 2a)
     
     X_train, *_ = utils.load_full_mnist()
-    mean_X_train = np.mean(X_train)
-    std_X_train = np.std(X_train)
+    mean_X_train = np.mean(X_train).astype(float)
+    std_X_train = np.std(X_train).astype(float)
 
     X_norm = (X.astype(float)-mean_X_train)/std_X_train
     X_pross = np.c_[X_norm, np.ones(X.shape[0])]
@@ -42,6 +42,10 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
 
 def sigmoid(Z):                 #Peder made ;)
     Z_sigd = 1/(1+np.exp(-Z))
+    return Z_sigd
+
+def sigmoidp(Z):
+    Z_sigd =sigmoid(Z)*(1-sigmoid(Z))
     return Z_sigd
 
 class SoftmaxModel:
