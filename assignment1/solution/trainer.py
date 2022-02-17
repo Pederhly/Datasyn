@@ -1,7 +1,7 @@
 import numpy as np
 import utils
-from tqdm import tqdm
 
+#sol
 #sol
 def should_early_stop(validation_loss: dict, num_steps=10): #sol
     losses = list(validation_loss.values()) #sol
@@ -9,6 +9,7 @@ def should_early_stop(validation_loss: dict, num_steps=10): #sol
     if len(relevant) < num_steps:#sol
         return#sol
     return min(relevant) == relevant[0] #sol
+
 
 class BaseTrainer:
 
@@ -81,7 +82,7 @@ class BaseTrainer:
         )
 
         global_step = 0
-        for epoch in tqdm(range(num_epochs)):
+        for epoch in range(num_epochs):
             train_loader = utils.batch_loader(
                 self.X_train, self.Y_train, self.batch_size, shuffle=self.shuffle_dataset)
             for X_batch, Y_batch in iter(train_loader):
@@ -95,8 +96,10 @@ class BaseTrainer:
                     train_history["accuracy"][global_step] = accuracy_train
                     val_history["loss"][global_step] = val_loss
                     val_history["accuracy"][global_step] = accuracy_val
-                    # TODO: Implement early stopping (copy from last assignment)
-                    if should_early_stop(val_history["loss"], num_steps = 50): #sol
+
+                    # TODO (Task 2d): Implement early stopping here.
+                    # You can access the validation loss in val_history["loss"]
+                    if should_early_stop(val_history["loss"], num_steps=10): #sol
                         print("early stop at:", epoch) #sol
                         return train_history, val_history #sol
                 global_step += 1

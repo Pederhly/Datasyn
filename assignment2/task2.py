@@ -16,7 +16,10 @@ def calculate_accuracy(X: np.ndarray, targets: np.ndarray, model: SoftmaxModel) 
         Accuracy (float)
     """
     # TODO: Implement this function (copy from last assignment)
-    accuracy = 0
+    accuracy = 0.0
+    Y_hat = model.forward(X)
+    c_preds = np.sum(np.argmax(Y_hat, axis=1) == np.argmax(targets, axis=1))
+    accuracy = c_preds/X.shape[0]
     return accuracy
 
 
@@ -32,7 +35,7 @@ class SoftmaxTrainer(BaseTrainer):
         self.momentum_gamma = momentum_gamma
         self.use_momentum = use_momentum
         # Init a history of previous gradients to use for implementing momentum
-        self.previous_grads = [np.zeros_like(w) for w in self.model.ws]
+        self.delta_w = [np.zeros_like(w) for w in self.model.ws]
 
     def train_step(self, X_batch: np.ndarray, Y_batch: np.ndarray):
         """
@@ -47,11 +50,19 @@ class SoftmaxTrainer(BaseTrainer):
             loss value (float) on batch
         """
         # TODO: Implement this function (task 2c)
+        #print(self.delta_w[0].shape)
+        #print(self.delta_w[1].shape)
 
         loss = 0
-
-        loss = cross_entropy_loss(Y_batch, logits)  # sol
-
+        Y_hat = self.model.forward(X_batch)
+        self.model.backward(X_batch, Y_hat, Y_batch)
+        for i in range(len(self.model.ws)):
+            if self.use_momentum == True:                                                                                         # Task 3c
+                self.delta_w[i] = self.model.grads[i] + (self.momentum_gamma * self.delta_w[i])
+                self.model.ws[i] = self.model.ws[i] - (self.learning_rate * self.delta_w[i])
+            else:
+                self.model.ws[i] = self.model.ws[i] - (self.learning_rate * self.model.grads[i])
+        loss = cross_entropy_loss(Y_batch, Y_hat) 
         return loss
 
     def validation_step(self):
@@ -80,16 +91,16 @@ class SoftmaxTrainer(BaseTrainer):
 if __name__ == "__main__":
     # hyperparameters DO NOT CHANGE IF NOT SPECIFIED IN ASSIGNMENT TEXT
     num_epochs = 50
-    learning_rate = .1
+    learning_rate = .02 #.1
     batch_size = 32
-    neurons_per_layer = [64, 10]
-    momentum_gamma = .9  # Task 3 hyperparameter
+    neurons_per_layer = np.append(64*np.ones(10), 10).astype(int) #2: [64 10] # 4a: [32, 10] 4b: [128, 10] 4d: [60, 60, 10] 4e: np.append(64*np.ones(10), 10)
+    momentum_gamma = .9
     shuffle_data = True
 
     # Settings for task 3. Keep all to false for task 2.
-    use_improved_sigmoid = False
-    use_improved_weight_init = False
-    use_momentum = False
+    use_improved_sigmoid = True
+    use_improved_weight_init = True
+    use_momentum = True
 
     # Load dataset
     X_train, Y_train, X_val, Y_val = utils.load_full_mnist()
@@ -129,7 +140,7 @@ if __name__ == "__main__":
     plt.ylabel("Cross Entropy Loss - Average")
     # Plot accuracy
     plt.subplot(1, 2, 2)
-    plt.ylim([0.90, .99])
+    plt.ylim([0.90, 0.99])
     utils.plot_loss(train_history["accuracy"], "Training Accuracy")
     utils.plot_loss(val_history["accuracy"], "Validation Accuracy")
     plt.xlabel("Number of Training Steps")
