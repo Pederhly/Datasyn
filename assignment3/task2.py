@@ -18,19 +18,24 @@ class ExampleModel(nn.Module):
                 num_classes: Number of classes we want to predict (10)
         """
         super().__init__()
+
         # TODO: Implement this function (Task  2a)
-        num_filters = 32  # Set number of filters in first conv layer
+        #kok
         self.num_classes = num_classes
-        # Define the convolutional layers
-        self.feature_extractor = nn.Sequential(
-            nn.Conv2d(
-                in_channels=image_channels,
-                out_channels=num_filters,
-                kernel_size=5,
-                stride=1,
-                padding=2
-            )
+        self.feature_extractor = nn.Sequential( 
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=5, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+            
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+            
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2,stride=2),
         )
+
         # The output of feature_extractor will be [batch_size, num_filters, 16, 16]
         self.num_output_features = 32*32*32
         # Initialize our last fully connected layer
@@ -38,8 +43,11 @@ class ExampleModel(nn.Module):
         # Outputs num_classes predictions, 1 for each class.
         # There is no need for softmax activation function, as this is
         # included with nn.CrossEntropyLoss
-        self.classifier = nn.Sequential(
-            nn.Linear(self.num_output_features, num_classes),
+        
+        self.fc = self.classifier = nn.Sequential(
+            nn.Linear(128*4*4, 64),
+            nn.ReLU(),
+            nn.Linear(64, 10),
         )
 
     def forward(self, x):
@@ -49,13 +57,25 @@ class ExampleModel(nn.Module):
             x: Input image, shape: [batch_size, 3, 32, 32]
         """
         # TODO: Implement this function (Task  2a)
+        #kok
+        batch_size = x.shape[0]
+        out = x
+        expected_shape = (batch_size, self.num_classes)
+        out = self.feature_extractor(out)
+        out = out.view(batch_size, -1)
+        out = self.fc(out)   
+        
+        assert out.shape == (batch_size, self.num_classes),\
+            f"Expected output of forward pass to be: {expected_shape}, but got: {out.shape}"
+        return out
+        """
         batch_size = x.shape[0]
         out = x
         expected_shape = (batch_size, self.num_classes)
         assert out.shape == (batch_size, self.num_classes),\
             f"Expected output of forward pass to be: {expected_shape}, but got: {out.shape}"
         return out
-
+        """
 
 def create_plots(trainer: Trainer, name: str):
     plot_path = pathlib.Path("plots")
