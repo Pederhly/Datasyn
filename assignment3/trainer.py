@@ -1,3 +1,4 @@
+
 import torch
 import typing
 import time
@@ -23,7 +24,7 @@ def compute_loss_and_accuracy(
     average_loss = 0
     accuracy = 0
     i = 0
-    N = 0
+    n = 0
     # TODO: Implement this function (Task  2a)
     with torch.no_grad():
         for (X_batch, Y_batch) in dataloader:
@@ -33,18 +34,16 @@ def compute_loss_and_accuracy(
             # Forward pass the images through our model
             #output_probs = model(X_batch)
 
-            # Compute Loss and Accuracy
             preds = model.forward(X_batch)
             _, Y_hat = torch.max(preds,axis=1)
             accuracy = accuracy + (Y_hat == Y_batch).sum().item()
-            
-            loss = loss_criterion(preds,Y_batch)
+            loss = loss_criterion(preds, Y_batch)
             average_loss = average_loss + torch.sum(loss)
 
-            N = N + X_batch.size(0)
             i = i + 1
+            n = n + X_batch.size(0)
 
-    accuracy = accuracy / N
+    accuracy = accuracy / n
     average_loss = average_loss / i
 
     return average_loss, accuracy
