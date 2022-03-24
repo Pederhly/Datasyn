@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from typing import Tuple, List
 
 
@@ -21,6 +22,73 @@ class BasicModel(torch.nn.Module):
         self.out_channels = output_channels
         self.output_feature_shape = output_feature_sizes
 
+        self.L1 = nn.Sequential(
+            # Layer 1
+            nn.Conv2d(in_channels = image_channels, out_channels = 32, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size = 2, stride = 2),
+            nn.Conv2d(in_channels = 32, out_channels = 64, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
+            nn.MaxPool2d(kernel_size = 2, stride = 2),
+            nn.Conv2d(in_channels = 64, out_channels = 64, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
+            nn.BatchNorm2d(64), # 4c
+            nn.Conv2d(in_channels = 64, out_channels = output_channels[0], kernel_size = 3, stride = 2, padding = 1),
+            nn.ReLU()
+            )
+        self.L2 = nn.Sequential(
+            # Layer 2
+            nn.ReLU(),
+            nn.Conv2d(in_channels = output_channels[0], out_channels = 128, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.BatchNorm2d(128), #4c
+            nn.Conv2d(in_channels = 128, out_channels = output_channels[1], kernel_size = 3, stride = 2, padding = 1),
+            nn.ReLU(),
+            nn.Dropout(p=0.2)
+        )
+        self.L3 = nn.Sequential(
+            # Layer 3
+            nn.ReLU(),
+            nn.Conv2d(in_channels = output_channels[1], out_channels = 256, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.BatchNorm2d(256), # 4c
+            nn.Conv2d(in_channels = 256, out_channels = output_channels[2], kernel_size = 3, stride = 2, padding = 1),
+            nn.ReLU(),
+            #nn.Dropout(p=0.2)
+        )
+        self.L4 = nn.Sequential(
+            # Layer 4
+            nn.ReLU(),
+            nn.Conv2d(in_channels = output_channels[2], out_channels = 128, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.BatchNorm2d(128), #4c
+            nn.Conv2d(in_channels = 128, out_channels = output_channels[3], kernel_size = 3, stride = 2, padding = 1),
+            nn.ReLU(),
+            nn.Dropout(p=0.2)
+        )
+        self.L5 = nn.Sequential(
+            #Layer 5
+            nn.ReLU(),
+            nn.Conv2d(in_channels = output_channels[3], out_channels = 128, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.BatchNorm2d(128), #4c
+            nn.Conv2d(in_channels = 128, out_channels = output_channels[4], kernel_size = 3, stride = 2, padding = 1),
+            nn.ReLU(),
+            #nn.Dropout(p=0.2)
+        )
+        self.L6 = nn.Sequential(
+            # Layer 6
+            nn.ReLU(),
+            nn.Conv2d(in_channels = output_channels[4], out_channels = 128, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(),
+            nn.BatchNorm2d(12   8),
+            nn.Conv2d(in_channels = 128, out_channels = output_channels[5], kernel_size = 3, stride = 1, padding = 0),
+            nn.ReLU(),
+            nn.Dropout(p=0.2)
+        )
+
     def forward(self, x):
         """
         The forward functiom should output features with shape:
@@ -34,7 +102,16 @@ class BasicModel(torch.nn.Module):
         where out_features[0] should have the shape:
             shape(-1, output_channels[0], 38, 38),
         """
-        out_features = []
+        out0 = x
+        out1 = self.L1(out0)
+        out2 = self.L2(out1)
+        out3 = self.L3(out2)
+        out4 = self.L4(out3)
+        out5 = self.L5(out4)
+        out6 = self.L6(out5)
+
+        out_features = [out1, out2, out3, out4, out5, out6]
+
         for idx, feature in enumerate(out_features):
             out_channel = self.out_channels[idx]
             h, w = self.output_feature_shape[idx]

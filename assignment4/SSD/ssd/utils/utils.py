@@ -44,7 +44,7 @@ def tencent_trick(model):
             {'params': decay}]
 
 
-def load_config(config_path: PathLike):
+def load_config(config_path: PathLike): #PathLike
     config_path = Path(config_path)
     run_name = "_".join(config_path.parts[1:-1]) + config_path.stem
     cfg = LazyConfig.load(str(config_path))

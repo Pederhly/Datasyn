@@ -12,6 +12,7 @@ from ssd import utils
 from tops.config import instantiate
 from tops import logger, checkpointer
 from torch.optim.lr_scheduler import ChainedScheduler
+from omegaconf import OmegaConf
 torch.backends.cudnn.benchmark = True
 
 def train_epoch(
@@ -50,7 +51,7 @@ def train_epoch(
 
 
 @click.command()
-@click.argument("config_path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.argument("config_path", type=click.Path(exists=True, dir_okay=False, path_type=str)) # Path
 @click.option("--evaluate-only", default=False, is_flag=True, help="Only run evaluation, no training.")
 def train(config_path: Path, evaluate_only: bool):
     logger.logger.DEFAULT_SCALAR_LEVEL = logger.logger.DEBUG
