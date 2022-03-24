@@ -35,31 +35,6 @@ def calculate_iou(prediction_box, gt_box):
     iou = area_of_overlap/area_of_union
     assert iou >= 0 and iou <= 1
     return iou
-    """
-    e = gt_box - prediction_box                                                                                             # error of pd_box from gt
-    gt_lh = np.array([gt_box[2], gt_box[3]]) - np.array([gt_box[0], gt_box[1]])                                             # calculate higth and length of gt
-    prediction_lh = np.array([prediction_box[2], prediction_box[3]]) - np.array([prediction_box[0], prediction_box[1]])
-    # Compute intersection
-    e_max = np.array([e[2], e[3]])
-    e_min = np.array([e[0], e[1]])
-    
-    if e_max[0] < 0 or e_max[1] < 0:                                # e[e[2, 3] < 0] = 0
-        e_max = np.array([0, 0])
-    if e_min[0] > 0 or e_min[1] > 0:                                # e[e[0, 1] > 0] = 0
-        e_min = np.array([0, 0])
-    
-    e_tot = e_max + np.abs(e_min)
-    iou_lh = gt_lh - e_tot
-    # Compute union
-    if iou_lh[0] > 0 and iou_lh[1] > 0:                                             # if error is larger then pd_box there is no iou
-        area_of_overlap = np.prod(iou_lh)                                           # iou exist
-        area_of_union = np.prod(gt_lh) + np.prod(prediction_lh) - area_of_overlap
-        iou = area_of_overlap / area_of_union
-    else:
-        iou = 0                                                                     # iou does not exist
-    assert iou >= 0 and iou <= 1
-    return iou
-    """
 
 
 def calculate_precision(num_tp, num_fp, num_fn):
