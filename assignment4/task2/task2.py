@@ -16,24 +16,26 @@ def calculate_iou(prediction_box, gt_box):
             float: value of the intersection of union for the two boxes.
     """
     # YOUR CODE HERE
-    x_min = max(prediction_box[0], gt_box[0])
-    y_min = max(prediction_box[1], gt_box[1])
     x_max = min(prediction_box[2], gt_box[2])
     y_max = min(prediction_box[3], gt_box[3])
+    x_min = max(prediction_box[0], gt_box[0])
+    y_min = max(prediction_box[1], gt_box[1])
 
+    # Compute intersection
     if(x_min > x_max or y_min > y_max):
         area_of_overlap = 0
     else:
-        area_of_overlap = abs((x_max - x_min)*(y_max - y_min))
+        area_of_overlap = abs((x_max - x_min) * (y_max - y_min))
 
     # Compute union
     pb_a = abs((prediction_box[2] - prediction_box[0]) * (prediction_box[3] - prediction_box[1]))
     gt_a = abs((gt_box[2] - gt_box[0]) * (gt_box[3] - gt_box[1]))
-    area_of_union = pb_a + pb_a - area_of_overlap
+    area_of_union = pb_a + gt_a - area_of_overlap
 
-    #compute iou
+    # Compute iou
     iou = area_of_overlap/area_of_union
     assert iou >= 0 and iou <= 1
+    
     return iou
 
 
@@ -103,77 +105,37 @@ def get_all_box_matches(prediction_boxes, gt_boxes, iou_threshold):
             Each row includes [xmin, ymin, xmax, ymax]
     """
     # Find all possible matches with a IoU >= iou threshold
-    """
-    matches_pred = np.empty((0,4),float)
-    matches_gt =  np.empty((0,4),float)
-    indexes_gt = []
-    indexes_pred = []
-    ious = np.array([])
+    IOUs = np.array([])
+    gt_indices = []
+    pred_indices = []
 
-
-    for gt in range(gt_boxes.shape[0]):
-        for pred in range(prediction_boxes.shape[0]):
-            iou = calculate_iou(prediction_boxes[pred],gt_boxes[gt])
-            if iou>=iou_threshold:
-                indexes_gt.append(gt)
-                indexes_pred.append(pred)
-                ious = np.append(ious,iou)
+    for pred in range(prediction_boxes.shape[0]):
+        for gt in range(gt_boxes.shape[0]):
+            IOU = calculate_iou(prediction_boxes[pred], gt_boxes[gt])
+            if IOU>=iou_threshold:
+                gt_indices.append(gt)
+                pred_indices.append(pred)
+                IOUs = np.append(IOUs, IOU)
 
     # Sort all matches on IoU in descending order
-    increasing = np.argsort(ious)
-    decreasing = np.flip(increasing)
+    decreasing_ious = np.flip(np.argsort(IOUs))
     
     # Find all matches with the highest IoU threshold
-    taken_gt = []
-    taken_pred = []
+    pred_used = []
+    gt_used = []
+    pred_matched = np.empty((0,4),float)
+    gt_matched =  np.empty((0,4),float)
 
-    for index in decreasing:  
-        pred_index = indexes_pred[index]
-        gt_index = indexes_gt[index]
-        if ((pred_index not in taken_pred) and (gt_index not in taken_gt)):
-            taken_gt.append(gt_index)
-            taken_pred.append(pred_index)
-            matches_pred = np.append(matches_pred,[prediction_boxes[pred_index]],axis = 0)
-            matches_gt = np.append(matches_gt,[gt_boxes[gt_index]],axis = 0)
+    for i in decreasing_ious:  
+        pred_index = pred_indices[i]
+        gt_index = gt_indices[i]
+        if (pred_index not in pred_used) and (gt_index not in gt_used):
+            pred_used.append(pred_index)
+            gt_used.append(gt_index)
+            pred_matched = np.append(pred_matched, [prediction_boxes[pred_index]], axis = 0)
+            gt_matched = np.append(gt_matched, [gt_boxes[gt_index]], axis = 0)
     
-    return matches_pred, matches_gt
-    """
-    matches = []
-
-    for num_pred in range(prediction_boxes.shape[0]):
-        for num_gt in range(gt_boxes.shape[0]):
-            iou = calculate_iou(prediction_boxes[num_pred, :], gt_boxes[num_gt, :])
-            if iou >= iou_threshold:
-                matches.append(match(prediction_boxes[num_pred, :], gt_boxes[num_gt, :], iou))
-
-    # Sort all matches on IoU in descending order
-    matches.sort(key=lambda match: match.iou, reverse=True)
-    # Find all matches with the highest IoU threshold
-    existing_gt = []
-    existing_pred = []
-    pred_matches = np.empty((0, 4), float)
-    gt_matches = np.empty((0, 4), float)
-
-    for i in range(len(matches)):
-        predic = matches[i].pred
-        groundt = matches[i].gt
-        flag = False
-        for j in range(len(existing_pred)):
-            compare_pred = predic == existing_pred[j]
-            compare_gt = groundt == existing_gt[j]
-            if compare_pred.all() or compare_gt.all():
-                flag == True
-        if flag == False:
-            existing_gt.append(groundt)
-            existing_pred.append(predic)
-            pred_matches = np.append(pred_matches, [predic], axis = 0)
-            gt_matches = np.append(gt_matches, [groundt], axis = 0)
-        #else:
-        #    matches.pop(i)
-
-    return pred_matches, gt_matches
-    #return np.array(matches.pred), np.array(matches.gt)
-    #"""
+    return pred_matched, gt_matched
 
 
 def calculate_individual_image_result(prediction_boxes, gt_boxes, iou_threshold):
@@ -272,27 +234,27 @@ def get_precision_recall_curve(
     # YOUR CODE HERE
     precisions = [] 
     recalls = []
-    for c_t in confidence_thresholds:
+
+    for confidence_threshold in confidence_thresholds:
         all_boxes = []
         all_scores = []
         for box, score in zip(all_prediction_boxes, confidence_scores):
             approved_boxes = []
             approved_scores = []
             for i in range(box.shape[0]):
-                if(score[i] >= c_t):
+                if score[i] >= confidence_threshold:
                     approved_boxes.append(box[i])
                     approved_scores.append(score[i])
             all_boxes.append(np.array(approved_boxes))
             all_scores.append(np.array(approved_scores))
-
-        # KOK setting the approved boxes as all boxes with matching scores, to redue the numbers of iterations needed
+        
         all_prediction_boxes = all_boxes
         confidence_scores = all_scores
 
         all_precicions, all_recalls = calculate_precision_recall_all_images(all_boxes, all_gt_boxes, iou_threshold)
         precisions.append(all_precicions)
         recalls.append(all_recalls)
-
+    
     return np.array(precisions), np.array(recalls)
 
 
